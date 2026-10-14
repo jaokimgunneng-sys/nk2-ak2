@@ -154,7 +154,7 @@ def main():
         print("Avbrutt - ingenting sendt.")
         return
 
-    port = input("COM-port (f.eks. COM3): ")
+    port = input("COM-port COM1: ")
     with serial.Serial(port, baudrate=9600, timeout=1) as ser:
         til_privileged_exec(ser)
         send(ser, "terminal length 0")
