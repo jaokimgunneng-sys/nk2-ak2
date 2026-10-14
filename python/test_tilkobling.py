@@ -1,7 +1,7 @@
 import serial
 import time
 
-port = input("COM-port (f.eks. COM3): ")
+port = input("COM-port COM1: ")
 
 # Cisco-konsoll: 9600 baud, 8 databit, ingen paritet, 1 stoppbit
 ser = serial.Serial(port, baudrate=9600, timeout=1)
