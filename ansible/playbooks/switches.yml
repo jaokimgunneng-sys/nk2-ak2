@@ -1,4 +1,4 @@
-# VLAN-er, trunker og access-porter på STUD2-SW1 og STUD2-SW2.
+# VLAN-er, trunker, access-porter og EtherChannel på STUD2-SW1 og STUD2-SW2.
 # Kjør:  ansible-playbook playbooks/switches.yml --ask-vault-pass
 
 - name: Konfigurer access-switchene
@@ -28,6 +28,7 @@
       loop_control:
         label: "VLAN {{ item.id }} {{ item.name }}"
 
+    # ---------- Trunker ----------
     - name: Trunk-porter - beskrivelse og no shutdown
       cisco.ios.ios_interfaces:
         config:
@@ -52,6 +53,7 @@
       loop_control:
         label: "{{ item.name }}"
 
+    # ---------- Access-porter ----------
     - name: Access-porter - beskrivelse og no shutdown
       cisco.ios.ios_interfaces:
         config:
@@ -85,6 +87,70 @@
       loop_control:
         label: "{{ item.name }}"
 
+    # ---------- EtherChannel ----------
+    # Medlemsportene får samme trunk-oppsett som Port-channel FØR de bundles,
+    # ellers kan LACP sette dem i "suspended" fordi konfigen er ulik.
+    - name: EtherChannel - medlemsporter beskrivelse og no shutdown
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item.1 }}"
+            description: "{{ item.0.description }}"
+            enabled: true
+        state: merged
+      loop: "{{ etherchannels | subelements('members') }}"
+      loop_control:
+        label: "Po{{ item.0.id }} <- {{ item.1 }}"
+
+    - name: EtherChannel - medlemsporter som trunk
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item.1 }}"
+            mode: trunk
+            trunk:
+              native_vlan: "{{ native_vlan.id }}"
+              allowed_vlans: "{{ item.0.allowed_vlans }}"
+        state: merged
+      loop: "{{ etherchannels | subelements('members') }}"
+      loop_control:
+        label: "Po{{ item.0.id }} <- {{ item.1 }}"
+
+    - name: EtherChannel - bundle portene med LACP
+      cisco.ios.ios_lag_interfaces:
+        config:
+          - name: "Port-channel{{ item.0.id }}"
+            members:
+              - member: "{{ item.1 }}"
+                mode: "{{ item.0.mode }}"
+        state: merged
+      loop: "{{ etherchannels | subelements('members') }}"
+      loop_control:
+        label: "Po{{ item.0.id }} <- {{ item.1 }}"
+
+    - name: EtherChannel - Port-channel som trunk
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "Port-channel{{ item.id }}"
+            mode: trunk
+            trunk:
+              native_vlan: "{{ native_vlan.id }}"
+              allowed_vlans: "{{ item.allowed_vlans }}"
+        state: merged
+      loop: "{{ etherchannels }}"
+      loop_control:
+        label: "Port-channel{{ item.id }}"
+
+    - name: EtherChannel - beskrivelse på Port-channel
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "Port-channel{{ item.id }}"
+            description: "{{ item.description }}"
+            enabled: true
+        state: merged
+      loop: "{{ etherchannels }}"
+      loop_control:
+        label: "Port-channel{{ item.id }}"
+
+    # ---------- Lagre ----------
     - name: Lagre konfig hvis noe er endret
       cisco.ios.ios_config:
         save_when: modified

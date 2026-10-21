@@ -9,3 +9,14 @@ access_ports:
   - name: GigabitEthernet1/0/3
     vlan: 10
     description: PC VLAN10_2
+
+# EtherChannel mot STUD1 Switch0. Klar til å kobles sammen:
+# STUD1 må bruke LACP (active eller passive), trunk, native VLAN 999 og VLAN 10,20.
+etherchannels:
+  - id: 1
+    mode: active                # LACP
+    description: EtherChannel til STUD1
+    members:
+      - GigabitEthernet1/0/4
+      - GigabitEthernet1/0/5
+    allowed_vlans: ["10", "20"] # bare brukernettene, management holdes lokalt
