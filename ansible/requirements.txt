@@ -1,0 +1,3 @@
+ansible-core
+paramiko>=3.4,<4    # 4.x godtar ikke SHA-1-nøkkelutvekslingen på 2901
+netaddr

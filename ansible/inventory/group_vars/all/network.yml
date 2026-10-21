@@ -1,0 +1,20 @@
+# IP-planen for hele STUD2-oppsettet. Alle subnett er /24.
+# Vil du legge til et VLAN, legger du det til her og kjører playbookene på nytt.
+vlans:
+  - id: 10
+    name: VLAN10
+    network: 192.168.10     # første tre oktetter
+  - id: 20
+    name: VLAN20
+    network: 192.168.20
+  - id: 99
+    name: MGMT
+    network: 192.168.99
+
+# Admin-nettet mellom PC, 3650 og routernes Gi0/0
+admin_net:
+  hsrp_group: 100
+  network: 10.2.0
+
+# Felles gateway (HSRP virtuell IP) er alltid .1 i hvert nett
+gateway_host: 1

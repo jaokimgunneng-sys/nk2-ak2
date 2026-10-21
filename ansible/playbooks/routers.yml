@@ -1,0 +1,45 @@
+# Router-on-a-stick med HSRP på STUD2-R1 og STUD2-R2.
+# Kjør:  ansible-playbook playbooks/routers.yml --ask-vault-pass
+
+- name: Konfigurer routerne
+  hosts: routers
+  gather_facts: false
+
+  tasks:
+    - name: Slå på trunk-interfacet mot SW1
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ trunk_interface }}"
+            description: Trunk til STUD2-SW1
+            enabled: true
+        state: merged
+
+    # encapsulation må komme før ip address på et subinterface,
+    # derfor brukes ios_config, som sender linjene i fast rekkefølge.
+    - name: Subinterface med HSRP for hvert VLAN
+      cisco.ios.ios_config:
+        parents: "interface {{ trunk_interface }}.{{ item.id }}"
+        lines:
+          - "description {{ item.name }}"
+          - "encapsulation dot1Q {{ item.id }}"
+          - "ip address {{ item.network }}.{{ host_index }} 255.255.255.0"
+          - "standby version 2"
+          - "standby {{ item.id }} ip {{ item.network }}.{{ gateway_host }}"
+          - "standby {{ item.id }} priority {{ hsrp_priority }}"
+          - "standby {{ item.id }} preempt"
+      loop: "{{ vlans }}"
+      loop_control:
+        label: "{{ trunk_interface }}.{{ item.id }} ({{ item.name }})"
+
+    - name: HSRP i admin-nettet (gateway for PC og 3650)
+      cisco.ios.ios_config:
+        parents: "interface {{ admin_interface }}"
+        lines:
+          - "standby version 2"
+          - "standby {{ admin_net.hsrp_group }} ip {{ admin_net.network }}.{{ gateway_host }}"
+          - "standby {{ admin_net.hsrp_group }} priority {{ hsrp_priority }}"
+          - "standby {{ admin_net.hsrp_group }} preempt"
+
+    - name: Lagre konfig hvis noe er endret
+      cisco.ios.ios_config:
+        save_when: modified

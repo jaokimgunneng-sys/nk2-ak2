@@ -1,0 +1,11 @@
+# Hvordan Ansible kobler til Cisco-utstyret
+ansible_connection: ansible.netcommon.network_cli
+ansible_network_os: cisco.ios.ios
+ansible_network_cli_ssh_type: paramiko   # takler de eldre SSH-algoritmene på 2901
+
+# Brukernavn og passord hentes fra den krypterte vault-fila
+ansible_user: "{{ vault_user }}"
+ansible_password: "{{ vault_password }}"
+ansible_become: true
+ansible_become_method: enable
+ansible_become_password: "{{ vault_enable }}"

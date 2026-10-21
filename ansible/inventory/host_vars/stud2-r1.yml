@@ -1,0 +1,2 @@
+host_index: 2          # R1 får .2 i hvert nett
+hsrp_priority: 110     # høyest = aktiv router
