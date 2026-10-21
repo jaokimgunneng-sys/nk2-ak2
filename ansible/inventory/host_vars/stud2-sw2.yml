@@ -20,3 +20,4 @@ etherchannels:
       - GigabitEthernet1/0/4
       - GigabitEthernet1/0/5
     allowed_vlans: ["10", "20"] # bare brukernettene, management holdes lokalt
+portfast_command: spanning-tree portfast edge

@@ -4,3 +4,4 @@ native_vlan:
   name: NATIVE_UNUSED
 # Standard: ingen EtherChannel. Overstyres i host_vars for switcher som har det.
 etherchannels: []
+portfast_command: spanning-tree portfast
