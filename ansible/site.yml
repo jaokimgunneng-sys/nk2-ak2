@@ -1,0 +1,11 @@
+# Konfigurerer hele STUD2-oppsettet i riktig rekkefølge:
+#   1. Routerne (subinterfaces + HSRP), slik at switchene blir nåbare via VLAN 99
+#   2. Switchene (VLAN-er, trunker, access-porter)
+#   3. DHCP på routerne
+#
+# Kjør alt:        ansible-playbook site.yml --ask-vault-pass
+# Bare én del:     ansible-playbook playbooks/dhcp.yml --ask-vault-pass
+
+- import_playbook: playbooks/routers.yml
+- import_playbook: playbooks/switches.yml
+- import_playbook: playbooks/dhcp.yml

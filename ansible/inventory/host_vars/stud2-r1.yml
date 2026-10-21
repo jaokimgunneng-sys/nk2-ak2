@@ -1,2 +1,4 @@
 host_index: 2          # R1 får .2 i hvert nett
 hsrp_priority: 110     # høyest = aktiv router
+dhcp_first: 100   # R1 deler ut .100 - .149
+dhcp_last: 149

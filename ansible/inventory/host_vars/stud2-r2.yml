@@ -1,2 +1,4 @@
 host_index: 3          # R2 får .3 i hvert nett
 hsrp_priority: 90      # standby
+dhcp_first: 150   # R2 deler ut .150 - .199
+dhcp_last: 199

@@ -1,0 +1,35 @@
+# DHCP-server på R1 og R2 for hvert VLAN med dhcp: true i network.yml.
+# Hver router deler bare ut sitt eget område (dhcp_first - dhcp_last),
+# alt annet ekskluderes, så de aldri gir bort samme adresse.
+# Kjør:  ansible-playbook playbooks/dhcp.yml --ask-vault-pass
+
+- name: DHCP på routerne
+  hosts: routers
+  gather_facts: false
+
+  vars:
+    dhcp_vlans: "{{ vlans | selectattr('dhcp') | list }}"
+
+  tasks:
+    - name: Ekskluder adresser utenfor routerens område
+      cisco.ios.ios_config:
+        lines:
+          - "ip dhcp excluded-address {{ item.network }}.1 {{ item.network }}.{{ dhcp_first - 1 }}"
+          - "ip dhcp excluded-address {{ item.network }}.{{ dhcp_last + 1 }} {{ item.network }}.254"
+      loop: "{{ dhcp_vlans }}"
+      loop_control:
+        label: "VLAN {{ item.id }}"
+
+    - name: DHCP-pool per VLAN
+      cisco.ios.ios_config:
+        parents: "ip dhcp pool {{ item.name }}"
+        lines:
+          - "network {{ item.network }}.0 255.255.255.0"
+          - "default-router {{ item.network }}.{{ gateway_host }}"
+      loop: "{{ dhcp_vlans }}"
+      loop_control:
+        label: "pool {{ item.name }}"
+
+    - name: Lagre konfig hvis noe er endret
+      cisco.ios.ios_config:
+        save_when: modified

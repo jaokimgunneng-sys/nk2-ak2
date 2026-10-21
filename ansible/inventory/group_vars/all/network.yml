@@ -4,12 +4,15 @@ vlans:
   - id: 10
     name: VLAN10
     network: 192.168.10     # første tre oktetter
+    dhcp: true
   - id: 20
     name: VLAN20
     network: 192.168.20
+    dhcp: true
   - id: 99
     name: MGMT
     network: 192.168.99
+    dhcp: true
 
 # Admin-nettet mellom PC, 3650 og routernes Gi0/0
 admin_net:
