@@ -1,0 +1,167 @@
+Building configuration...
+
+Current configuration : 2744 bytes
+!
+! Last configuration change at 09:29:04 UTC Wed Oct 21 2026 by joakim
+!
+version 15.7
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+!
+hostname STUD2-R2
+!
+boot-start-marker
+boot-end-marker
+!
+!
+enable secret 5 $1$Z3JR$VtE.vrRNgChB2.iFV4BVW0
+!
+no aaa new-model
+!
+!
+!
+!
+!
+!
+!
+!
+!
+ip dhcp excluded-address 192.168.10.1 192.168.10.149
+ip dhcp excluded-address 192.168.10.200 192.168.10.254
+ip dhcp excluded-address 192.168.20.1 192.168.20.149
+ip dhcp excluded-address 192.168.20.200 192.168.20.254
+ip dhcp excluded-address 192.168.99.1 192.168.99.149
+ip dhcp excluded-address 192.168.99.200 192.168.99.254
+!
+ip dhcp pool VLAN10
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.1 
+!
+ip dhcp pool VLAN20
+ network 192.168.20.0 255.255.255.0
+ default-router 192.168.20.1 
+!
+ip dhcp pool MGMT
+ network 192.168.99.0 255.255.255.0
+ default-router 192.168.99.1 
+!
+!
+!
+no ip domain lookup
+ip domain name stud2
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+license udi pid CISCO2901/K9 sn FCZ1922C4SX
+license boot module c2900 technology-package securityk9
+hw-module usb disable
+!
+!
+username joakim privilege 15 secret 5 $1$F/v0$IaBToTH4XNdw5r3LUwpPT.
+!
+redundancy
+!
+!
+!
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Embedded-Service-Engine0/0
+ no ip address
+ shutdown
+!
+interface GigabitEthernet0/0
+ ip address 10.2.0.3 255.255.255.0
+ standby version 2
+ standby 100 ip 10.2.0.1
+ standby 100 priority 90
+ standby 100 preempt
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/1
+ description Trunk til STUD2-SW1
+ no ip address
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/1.10
+ description VLAN10
+ encapsulation dot1Q 10
+ ip address 192.168.10.3 255.255.255.0
+ standby version 2
+ standby 10 ip 192.168.10.1
+ standby 10 priority 90
+ standby 10 preempt
+!
+interface GigabitEthernet0/1.20
+ description VLAN20
+ encapsulation dot1Q 20
+ ip address 192.168.20.3 255.255.255.0
+ standby version 2
+ standby 20 ip 192.168.20.1
+ standby 20 priority 90
+ standby 20 preempt
+!
+interface GigabitEthernet0/1.99
+ description MGMT
+ encapsulation dot1Q 99
+ ip address 192.168.99.3 255.255.255.0
+ standby version 2
+ standby 99 ip 192.168.99.1
+ standby 99 priority 90
+ standby 99 preempt
+!
+interface Serial0/0/0
+ no ip address
+ shutdown
+ clock rate 2000000
+!
+interface Serial0/0/1
+ no ip address
+ shutdown
+ clock rate 2000000
+!
+ip forward-protocol nd
+!
+no ip http server
+no ip http secure-server
+!
+ip ssh version 2
+!
+!
+!
+!
+control-plane
+!
+!
+line con 0
+line aux 0
+line 2
+ no activation-character
+ no exec
+ transport preferred none
+ transport output pad telnet rlogin lapb-ta mop udptn v120 ssh
+ stopbits 1
+line vty 0 4
+ login local
+ transport input ssh
+!
+scheduler allocate 20000 1000
+!
+end
