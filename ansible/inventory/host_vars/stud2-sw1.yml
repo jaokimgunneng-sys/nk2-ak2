@@ -1,0 +1,9 @@
+trunk_ports:
+  - name: FastEthernet0/1
+    description: Trunk til STUD2-R1 Gi0/1
+  - name: FastEthernet0/2
+    description: Trunk til STUD2-R2 Gi0/1
+  - name: FastEthernet0/4
+    description: Trunk til STUD2-SW2 Gi1/0/1
+
+access_ports: []

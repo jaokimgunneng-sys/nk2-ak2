@@ -1,0 +1,4 @@
+# Native VLAN på trunkene: et ubrukt VLAN, så utagget trafikk ikke havner i et brukernett
+native_vlan:
+  id: 999
+  name: NATIVE_UNUSED

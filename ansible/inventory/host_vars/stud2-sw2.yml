@@ -1,0 +1,11 @@
+trunk_ports:
+  - name: GigabitEthernet1/0/1
+    description: Trunk til STUD2-SW1 Fa0/4
+
+access_ports:
+  - name: GigabitEthernet1/0/2
+    vlan: 20
+    description: PC VLAN20_1
+  - name: GigabitEthernet1/0/3
+    vlan: 10
+    description: PC VLAN10_2

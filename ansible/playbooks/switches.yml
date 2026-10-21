@@ -1,0 +1,90 @@
+# VLAN-er, trunker og access-porter på STUD2-SW1 og STUD2-SW2.
+# Kjør:  ansible-playbook playbooks/switches.yml --ask-vault-pass
+
+- name: Konfigurer access-switchene
+  hosts: access
+  gather_facts: false
+  serial: 1   # én switch om gangen: SW2 nås først når SW1 Fa0/4 er trunk
+
+  vars:
+    # Alle VLAN-ID-ene fra network.yml som tekst, f.eks. ["10", "20", "99"]
+    trunk_vlans: "{{ vlans | map(attribute='id') | map('string') | list }}"
+
+  tasks:
+    # Transparent: switchene synker ikke VLAN-databasen med hverandre (eller med STUD1)
+    - name: VTP transparent og rapid spanning tree
+      cisco.ios.ios_config:
+        lines:
+          - vtp mode transparent
+          - spanning-tree mode rapid-pvst
+
+    - name: Opprett VLAN-ene fra IP-planen + native VLAN
+      cisco.ios.ios_vlans:
+        config:
+          - vlan_id: "{{ item.id }}"
+            name: "{{ item.name }}"
+        state: merged
+      loop: "{{ vlans + [native_vlan] }}"
+      loop_control:
+        label: "VLAN {{ item.id }} {{ item.name }}"
+
+    - name: Trunk-porter - beskrivelse og no shutdown
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            description: "{{ item.description }}"
+            enabled: true
+        state: merged
+      loop: "{{ trunk_ports }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Trunk-porter - trunk med native VLAN og tillatte VLAN-er
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            mode: trunk
+            trunk:
+              native_vlan: "{{ native_vlan.id }}"
+              allowed_vlans: "{{ trunk_vlans }}"
+        state: merged
+      loop: "{{ trunk_ports }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Access-porter - beskrivelse og no shutdown
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            description: "{{ item.description }}"
+            enabled: true
+        state: merged
+      loop: "{{ access_ports }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Access-porter - riktig VLAN
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            mode: access
+            access:
+              vlan: "{{ item.vlan }}"
+        state: merged
+      loop: "{{ access_ports }}"
+      loop_control:
+        label: "{{ item.name }} -> VLAN {{ item.vlan }}"
+
+    # PortFast: PC-porten går rett i forwarding, så PC-en får DHCP raskere
+    - name: Access-porter - PortFast
+      cisco.ios.ios_config:
+        parents: "interface {{ item.name }}"
+        lines:
+          - spanning-tree portfast
+      loop: "{{ access_ports }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Lagre konfig hvis noe er endret
+      cisco.ios.ios_config:
+        save_when: modified
